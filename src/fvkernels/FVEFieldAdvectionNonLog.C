@@ -8,7 +8,8 @@ FVEFieldAdvectionNonLog::validParams()
 {
   InputParameters params = FVFluxKernel::validParams();
   params.addClassDescription("Generic electric field driven advection term using finite volume method.");
-  params.addRequiredParam<MaterialPropertyName>("potential", "The element average potential as a material property.");
+  params.addRequiredCoupledVar(
+      "potential", "The gradient of the potential will be used to compute the advection velocity.");
   return params;
 }
 
@@ -17,8 +18,9 @@ FVEFieldAdvectionNonLog::FVEFieldAdvectionNonLog(const InputParameters & params)
     _mu_elem(getADMaterialProperty<Real>("mu" + _var.name())),
     _mu_neighbor(getNeighborADMaterialProperty<Real>("mu" + _var.name())),
     _sign(getMaterialProperty<Real>("sgn" + _var.name())),
-    _potential_elem(getADMaterialProperty<Real>("potential")),
-    _potential_neighbor(getNeighborADMaterialProperty<Real>("potential"))
+    _potential_var(dynamic_cast<const MooseVariableFV<Real> *>(getFieldVar("potential", 0))),
+    _potential_elem(adCoupledValue("potential")),
+    _potential_neighbor(adCoupledNeighborValue("potential"))
 {
 }
 
@@ -26,6 +28,11 @@ ADReal
 FVEFieldAdvectionNonLog::computeQpResidual()
 {
   ADReal u_interface;
+
+  auto dpotential_dn = Moose::FV::gradUDotNormal(_potential_elem[_qp],
+                                                 _potential_neighbor[_qp],
+                                                 *_face_info,
+                                                 *_potential_var);
 
   using namespace Moose::FV;
 
@@ -37,15 +44,6 @@ FVEFieldAdvectionNonLog::computeQpResidual()
               *_face_info,
               true);
 
-  ADReal _grad_pot_normal = (_potential_neighbor[_qp] - _potential_elem[_qp]) / _face_info->dCFMag();
-
-  //interpolate(InterpMethod::Average,
-  //            _Efield,
-  //            _Efield_elem[_qp],
-  //            _Efield_neighbor[_qp],
-  //            *_face_info,
-  //            true);
-
   interpolate(InterpMethod::Average,
               u_interface,
               _u_elem[_qp],
@@ -53,5 +51,5 @@ FVEFieldAdvectionNonLog::computeQpResidual()
               *_face_info,
               true);
 
-  return _sign[_qp] * mobility * -1.0 * _grad_pot_normal * u_interface;
+  return _sign[_qp] * mobility * -1.0 * dpotential_dn * u_interface;
 }

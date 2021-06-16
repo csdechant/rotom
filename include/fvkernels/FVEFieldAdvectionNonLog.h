@@ -17,6 +17,7 @@ protected:
 
   const MaterialProperty<Real> & _sign;
 
-  const ADMaterialProperty<Real> & _potential_elem;
-  const ADMaterialProperty<Real> & _potential_neighbor;
+  const MooseVariableFV<Real> * _potential_var;
+  const ADVariableValue & _potential_elem;
+  const ADVariableValue & _potential_neighbor;
 };

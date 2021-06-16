@@ -1,3 +1,5 @@
+#Checked
+
 [Mesh]
   [gen]
     type = GeneratedMeshGenerator
@@ -6,8 +8,6 @@
     xmax = 1
     ymin = 0
     ymax = 1
-    #nx = 10
-    #ny = 10
     nx = 25
     ny = 25
   []
@@ -326,11 +326,7 @@
   type = Transient
   start_time = 0
   end_time = 10
-  #dt = 0.05
-  #dt = 0.025
-  #dt = 0.01
   dt = 0.008
-  #dt = 0.005
 
   petsc_options = '-snes_converged_reason -snes_linesearch_monitor'
   solve_type = NEWTON
@@ -344,7 +340,6 @@
 
 [Outputs]
   perf_graph = true
-  #file_base = 'FE_FV_Course'
   [./out]
     type = Exodus
   [../]

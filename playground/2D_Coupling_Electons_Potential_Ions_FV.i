@@ -1,3 +1,5 @@
+#Checked
+
 [Mesh]
   [gen]
     type = GeneratedMeshGenerator
@@ -6,8 +8,6 @@
     xmax = 1
     ymin = 0
     ymax = 1
-    #nx = 75
-    #ny = 75
     nx = 25
     ny = 25
   []
@@ -49,8 +49,7 @@
   [./em_advection]
     type = FVEFieldAdvectionNonLog
     variable = em
-    Efield = Efield
-    advected_interp_method = 'average'
+    potential = potential
     position_units = 1.0
   [../]
   [./em_source]
@@ -72,8 +71,7 @@
   [./ion_advection]
     type = FVEFieldAdvectionNonLog
     variable = ion
-    Efield = Efield
-    advected_interp_method = 'average'
+    potential = potential
     position_units = 1.0
   [../]
   [./ion_source]
@@ -88,23 +86,23 @@
     variable = potential
     position_units = 1.0
   [../]
-  #[./ion_charge_source]
-  #  type = FVChargeSourceMoles_KVNonLog
-  #  variable = potential
-  #  charged = em_sol
-  #  potential_units = V
-  #[../]
-  #[./em_charge_source]
-  #  type = FVChargeSourceMoles_KVNonLog
-  #  variable = potential
-  #  charged = ion_sol
-  #  potential_units = V
-  #[../]
-  [./potential_source]
-    type = FVBodyForce
+  [./ion_charge_source]
+    type = FVChargeSourceMoles_KVNonLog
     variable = potential
-    function = 'potential_source'
+    charged = em_sol
+    potential_units = V
   [../]
+  [./em_charge_source]
+    type = FVChargeSourceMoles_KVNonLog
+    variable = potential
+    charged = ion_sol
+    potential_units = V
+  [../]
+  #[./potential_source]
+  #  type = FVBodyForce
+  #  variable = potential
+  #  function = 'potential_source'
+  #[../]
 []
 
 [AuxVariables]
@@ -461,12 +459,6 @@
     prop_names =  'sgnem_sol  sgnion_sol'
     prop_values = '-1.0       1.0'
   [../]
-
-  [./ElectroStatic_Efield]
-    type = ElectrostaticMaterial
-    potential = potential
-    Efield = Efield
-  [../]
 []
 
 [Postprocessors]
@@ -507,12 +499,8 @@
 [Executioner]
   type = Transient
   start_time = 0
-  end_time = 20
-  #dt = 0.05
-  #dt = 0.025
-  #dt = 0.01
+  end_time = 10
   dt = 0.008
-  #dt = 0.005
 
   petsc_options = '-snes_converged_reason -snes_linesearch_monitor'
   solve_type = NEWTON

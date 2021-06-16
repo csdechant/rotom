@@ -1,10 +1,15 @@
+#Checked
+
 [Mesh]
   [gen]
     type = GeneratedMeshGenerator
-    dim = 1
+    dim = 2
     xmin = 0
     xmax = 1
+    ymin = 0
+    ymax = 1
     nx = 25
+    ny = 25
   []
 []
 
@@ -14,107 +19,131 @@
 
 [Variables]
   [./em]
+    family = MONOMIAL
+    order = CONSTANT
+    fv = true
   [../]
-  [./potential]
+  [./potential_FV]
+    family = MONOMIAL
+    order = CONSTANT
+    fv = true
   [../]
   [./ion]
+    family = MONOMIAL
+    order = CONSTANT
+    fv = true
+  [../]
+
+  [./potential_FE]
   [../]
 []
 
-[Kernels]
+[FVKernels]
 #Electron Equations
   [./em_time_derivative]
-    type = TimeDerivative
+    type = FVTimeKernel
     variable = em
   [../]
   [./em_diffusion]
-    type = CoeffDiffusionNonLog
+    type = FVCoeffDiffusionNonLog
     variable = em
     position_units = 1.0
   [../]
   [./em_advection]
-    type = EFieldAdvectionNonLog
+    type = FVEFieldAdvectionNonLog
     variable = em
-    potential = 'potential'
+    potential = potential_FV
     position_units = 1.0
   [../]
   [./em_source]
-    type = BodyForce
+    type = FVBodyForce
     variable = em
     function = 'em_source'
   [../]
 
 #Ion Equations
   [./ion_time_derivative]
-    type = TimeDerivative
+    type = FVTimeKernel
     variable = ion
   [../]
   [./ion_diffusion]
-    type = CoeffDiffusionNonLog
+    type = FVCoeffDiffusionNonLog
     variable = ion
     position_units = 1.0
   [../]
   [./ion_advection]
-    type = EFieldAdvectionNonLog
+    type = FVEFieldAdvectionNonLog
     variable = ion
-    potential = 'potential'
+    potential = potential_FV
     position_units = 1.0
   [../]
   [./ion_source]
-    type = BodyForce
+    type = FVBodyForce
     variable = ion
     function = 'ion_source'
   [../]
 
 #Potential Equations
+  [./potential_from_materials]
+    type = FVfromMat
+    variable = potential_FV
+    FE_property = potential_average
+  [../]
+[]
+
+[Kernels]
+#Potential Equations
   [./potential_diffusion]
     type = CoeffDiffusionNonLog
-    variable = potential
+    variable = potential_FE
     position_units = 1.0
   [../]
-  [./ion_charge_source]
-    type = ChargeSourceMoles_KVNonLog
-    variable = potential
-    charged = ion
-    potential_units = V
+  [./potential_source_FE]
+    type = BodyForce
+    variable = potential_FE
+    function = 'potential_source'
   [../]
-  [./em_charge_source]
-    type = ChargeSourceMoles_KVNonLog
-    variable = potential
-    charged = em
-    potential_units = V
-  [../]
-  #[./potential_source]
-  #  type = BodyForce
-  #  variable = potential
-  #  function = 'potential_source'
-  #[../]
 []
 
 [AuxVariables]
-  [./Potential_Average]
+  [./potential_sol]
+    family = MONOMIAL
+    order = CONSTANT
+    fv = true
+  [../]
+
+  [./em_sol]
+    family = MONOMIAL
+    order = CONSTANT
+    fv = true
+  [../]
+
+  [./ion_sol]
+    family = MONOMIAL
+    order = CONSTANT
+    fv = true
+  [../]
+
+  [./potential_FE_cell]
+    family = MONOMIAL
+    order = CONSTANT
+  [../]
+  [./potential_FE_wall_left]
     family = MONOMIAL
     order = CONSTANT
   [../]
 
-  [./potential_sol]
+  [./potential_Mat_average]
+    family = MONOMIAL
+    order = CONSTANT
   [../]
-
-  [./em_sol]
-  [../]
-
-  [./ion_sol]
+  [./potential_Mat_average_wall_left]
+    family = MONOMIAL
+    order = CONSTANT
   [../]
 []
 
 [AuxKernels]
-  [./Potential_Average]
-    type = QuotientAux
-    variable = Potential_Average
-    numerator = potential
-    denominator = 1.0
-  [../]
-
   [./potential_sol]
     type = FunctionAux
     variable = potential_sol
@@ -131,6 +160,32 @@
     type = FunctionAux
     variable = ion_sol
     function = ion_fun
+  [../]
+
+  [./Potential_Cell]
+    type = QuotientAux
+    variable = potential_FE_cell
+    numerator = potential_FE
+    denominator = 1.0
+  [../]
+  [./Potential_Wall_Left]
+    type = QuotientAux
+    variable = potential_FE_wall_left
+    numerator = potential_FE
+    denominator = 1.0
+    boundary = 3
+  [../]
+
+  [./potential_average]
+    type = ADMaterialRealAux
+    variable = potential_Mat_average
+    property =  potential_average
+  [../]
+  [./potential_average_edge]
+    type = ADMaterialRealAux
+    variable = potential_Mat_average_wall_left
+    property =  potential_average_3
+    boundary = 3
   [../]
 []
 
@@ -333,49 +388,122 @@
   [../]
 []
 
-[BCs]
-  [./potential_left_BC]
-    type = FunctionDirichletBC
-    variable = potential
+[FVBCs]
+  [./potential_FV_left_BC]
+    type = FVFunctionDirichletBC
+    variable = potential_FV
     function = 'potential_left_BC'
-    boundary = 0
+    boundary = 3
     preset = true
   [../]
-  [./potential_right_BC]
-    type = FunctionDirichletBC
-    variable = potential
+  [./potential_FV_right_BC]
+    type = FVFunctionDirichletBC
+    variable = potential_FV
     function = 'potential_right_BC'
     boundary = 1
     preset = true
   [../]
-
-  [./em_left_BC]
-    type = FunctionDirichletBC
-    variable = em
-    function = 'em_left_BC'
+  [./potential_FV_down_BC]
+    type = FVFunctionDirichletBC
+    variable = potential_FV
+    function = 'potential_down_BC'
     boundary = 0
     preset = true
   [../]
+  [./potential_FV_up_BC]
+    type = FVFunctionDirichletBC
+    variable = potential_FV
+    function = 'potential_up_BC'
+    boundary = 2
+    preset = true
+  [../]
+
+  [./em_left_BC]
+    type = FVFunctionDirichletBC
+    variable = em
+    function = 'em_left_BC'
+    boundary = 3
+    preset = true
+  [../]
   [./em_right_BC]
-    type = FunctionDirichletBC
+    type = FVFunctionDirichletBC
     variable = em
     function = 'em_right_BC'
     boundary = 1
     preset = true
   [../]
-
-  [./ion_left_BC]
-    type = FunctionDirichletBC
-    variable = ion
-    function = 'ion_left_BC'
+  [./em_down_BC]
+    type = FVFunctionDirichletBC
+    variable = em
+    function = 'em_down_BC'
     boundary = 0
     preset = true
   [../]
+  [./em_up_BC]
+    type = FVFunctionDirichletBC
+    variable = em
+    function = 'em_up_BC'
+    boundary = 2
+    preset = true
+  [../]
+
+  [./ion_left_BC]
+    type = FVFunctionDirichletBC
+    variable = ion
+    function = 'ion_left_BC'
+    boundary = 3
+    preset = true
+  [../]
   [./ion_right_BC]
-    type = FunctionDirichletBC
+    type = FVFunctionDirichletBC
     variable = ion
     function = 'ion_right_BC'
     boundary = 1
+    preset = true
+  [../]
+  [./ion_down_BC]
+    type = FVFunctionDirichletBC
+    variable = ion
+    function = 'ion_down_BC'
+    boundary = 0
+    preset = true
+  [../]
+  [./ion_up_BC]
+    type = FVFunctionDirichletBC
+    variable = ion
+    function = 'ion_up_BC'
+    boundary = 2
+    preset = true
+  [../]
+[]
+
+[BCs]
+  [./potential_FE_left_BC]
+    type = FunctionDirichletBC
+    variable = potential_FE
+    function = 'potential_left_BC'
+    boundary = 3
+    preset = true
+  [../]
+  [./potential_FE_right_BC]
+    type = FunctionDirichletBC
+    variable = potential_FE
+    function = 'potential_right_BC'
+    boundary = 1
+    preset = true
+  [../]
+  [./potential_FE_down_BC]
+    type = FunctionDirichletBC
+    variable = potential_FE
+    function = 'potential_down_BC'
+    boundary = 0
+    preset = true
+  [../]
+  [./potential_FE_up_BC]
+    type = FunctionDirichletBC
+    variable = potential_FE
+    function = 'potential_up_BC'
+    boundary = 2
     preset = true
   [../]
 []
@@ -388,8 +516,8 @@
   [../]
   [./ADMaterial_Coeff_Set1]
     type = ADGenericFunctionMaterial
-    prop_names =  'diffpotential diffion muion'
-    prop_values = 'diffpotential diffion muion'
+    prop_names =  'diffpotential_FV diffpotential_FE diffion muion'
+    prop_values = 'diffpotential    diffpotential    diffion muion'
   [../]
   [./ADMaterial_Coeff_Set2]
     type = ADGenericFunctionMaterial
@@ -401,22 +529,46 @@
     prop_names =  'sgnem  sgnion'
     prop_values = '-1.0   1.0'
   [../]
+  [./Charge_SignsV02]
+    type = GenericConstantMaterial
+    prop_names =  'sgnem_sol  sgnion_sol'
+    prop_values = '-1.0       1.0'
+  [../]
+
+  [./FE_Element_Average]
+    type = FEElementAverage
+    var = potential_FE
+    var_average = potential_average
+  [../]
+
+  [./FE_Element_Average_Left]
+    type = FEElementAverage
+    var = potential_FE
+    var_average = potential_average_3
+    boundary = 3
+  [../]
 []
 
 [Postprocessors]
   [./em_l2Error]
-    type = ElementL2Error
+    type = ElementCenterL2Error
     variable = em
     function = em_fun
   [../]
   [./ion_l2Error]
-    type = ElementL2Error
+    type = ElementCenterL2Error
     variable = ion
     function = ion_fun
   [../]
-  [./potential_l2Error]
+  [./potential_FV_l2Error]
+    type = ElementCenterL2Error
+    variable = potential_FV
+    function = potential_fun
+  [../]
+
+  [./potential_FE_l2Error]
     type = ElementL2Error
-    variable = potential
+    variable = potential_FE
     function = potential_fun
   [../]
 
@@ -441,12 +593,8 @@
 [Executioner]
   type = Transient
   start_time = 0
-  end_time = 20
-  #dt = 0.05
-  #dt = 0.025
-  #dt = 0.01
+  end_time = 10
   dt = 0.008
-  #dt = 0.005
 
   petsc_options = '-snes_converged_reason -snes_linesearch_monitor'
   solve_type = NEWTON

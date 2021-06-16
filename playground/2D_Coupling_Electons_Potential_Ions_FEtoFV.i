@@ -1,3 +1,5 @@
+#Checked
+
 [Mesh]
   [gen]
     type = GeneratedMeshGenerator
@@ -6,8 +8,6 @@
     xmax = 1
     ymin = 0
     ymax = 1
-    #nx = 75
-    #ny = 75
     nx = 25
     ny = 25
   []
@@ -50,7 +50,7 @@
     position_units = 1.0
   [../]
   [./em_advection]
-    type = FVEFieldAdvectionNonLogNonMat
+    type = FVEFieldAdvectionNonLog
     variable = em
     potential = potential_FV
     position_units = 1.0
@@ -72,7 +72,7 @@
     position_units = 1.0
   [../]
   [./ion_advection]
-    type = FVEFieldAdvectionNonLogNonMat
+    type = FVEFieldAdvectionNonLog
     variable = ion
     potential = potential_FV
     position_units = 1.0
@@ -87,7 +87,7 @@
   [./potential_from_materials]
     type = FVfromMat
     variable = potential_FV
-    potential = potential_average
+    FE_property = potential_average
   [../]
 []
 
@@ -124,11 +124,20 @@
     fv = true
   [../]
 
-  [./potential_average_Value]
+  [./potential_FE_cell]
     family = MONOMIAL
     order = CONSTANT
   [../]
-  [./potential_average_edge_Value]
+  [./potential_FE_wall_left]
+    family = MONOMIAL
+    order = CONSTANT
+  [../]
+
+  [./potential_Mat_average]
+    family = MONOMIAL
+    order = CONSTANT
+  [../]
+  [./potential_Mat_average_wall_left]
     family = MONOMIAL
     order = CONSTANT
   [../]
@@ -153,18 +162,31 @@
     function = ion_fun
   [../]
 
+  [./Potential_Cell]
+    type = QuotientAux
+    variable = potential_FE_cell
+    numerator = potential_FE
+    denominator = 1.0
+  [../]
+  [./Potential_Wall_Left]
+    type = QuotientAux
+    variable = potential_FE_wall_left
+    numerator = potential_FE
+    denominator = 1.0
+    boundary = 3
+  [../]
+
   [./potential_average]
     type = ADMaterialRealAux
-    variable = potential_average_Value
+    variable = potential_Mat_average
     property =  potential_average
   [../]
   [./potential_average_edge]
     type = ADMaterialRealAux
-    variable = potential_average_edge_Value
-    property =  potential_average_edge
-    boundary = 0
+    variable = potential_Mat_average_wall_left
+    property =  potential_average_3
+    boundary = 3
   [../]
-
 []
 
 [Functions]
@@ -367,41 +389,6 @@
 []
 
 [FVBCs]
-  #[./potential_from_materials_BC]
-  #  type = FVfromMatBC
-  #  variable = potential_FV
-  #  potential = potential_average
-  #  boundary = '0 1 2 3'
-  #[../]
-  #[./potential_FV_left_BC]
-  #  type = FVFunctionDirichletBC
-  #  variable = potential_FV
-  #  function = 'potential_left_BC'
-  #  boundary = 3
-  #  preset = true
-  #[../]
-  #[./potential_FV_right_BC]
-  #  type = FVFunctionDirichletBC
-  #  variable = potential_FV
-  #  function = 'potential_right_BC'
-  #  boundary = 1
-  #  preset = true
-  #[../]
-  #[./potential_FV_down_BC]
-  #  type = FVFunctionDirichletBC
-  #  variable = potential_FV
-  #  function = 'potential_down_BC'
-  #  boundary = 0
-  #  preset = true
-  #[../]
-  #[./potential_FV_up_BC]
-  #  type = FVFunctionDirichletBC
-  #  variable = potential_FV
-  #  function = 'potential_up_BC'
-  #  boundary = 2
-  #  preset = true
-  #[../]
-
   [./em_left_BC]
     type = FVFunctionDirichletBC
     variable = em
@@ -519,25 +506,18 @@
     prop_values = '-1.0       1.0'
   [../]
 
-  #[./Potential_Mat_Fun]
-  #  type = ADGenericFunctionMaterial
-  #  prop_names = 'potential_mat_fun'
-  #  prop_values = 'potential_fun'
-  #[../]
-
   [./FE_Element_Average]
     type = FEElementAverage
     var = potential_FE
     var_average = potential_average
   [../]
 
-  [./FE_Element_Average_Edge]
+  [./FE_Element_Average_Left]
     type = FEElementAverage
     var = potential_FE
-    var_average = potential_average_edge
-    boundary = 0
+    var_average = potential_average_3
+    boundary = 3
   [../]
-
 []
 
 [Postprocessors]
@@ -584,14 +564,8 @@
 [Executioner]
   type = Transient
   start_time = 0
-  #end_time = 20
-  end_time = 3
-
-  #dt = 0.05
-  #dt = 0.025
-  #dt = 0.01
+  end_time = 10
   dt = 0.008
-  #dt = 0.005
 
   petsc_options = '-snes_converged_reason -snes_linesearch_monitor'
   solve_type = NEWTON

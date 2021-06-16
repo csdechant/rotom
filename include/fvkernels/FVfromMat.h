@@ -20,5 +20,5 @@ public:
 protected:
   ADReal computeQpResidual() override;
 
-  const ADMaterialProperty<Real> & _potential_elem;
+  const ADMaterialProperty<Real> & _FE_elem;
 };
