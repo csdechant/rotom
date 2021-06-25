@@ -8,8 +8,8 @@
     xmax = 1
     ymin = 0
     ymax = 1
-    nx = 25
-    ny = 25
+    nx = 50
+    ny = 50
   []
 []
 
@@ -98,11 +98,6 @@
     charged = ion_sol
     potential_units = V
   [../]
-  #[./potential_source]
-  #  type = FVBodyForce
-  #  variable = potential
-  #  function = 'potential_source'
-  #[../]
 []
 
 [AuxVariables]
@@ -499,7 +494,7 @@
 [Executioner]
   type = Transient
   start_time = 0
-  end_time = 10
+  end_time = 20
   dt = 0.008
 
   petsc_options = '-snes_converged_reason -snes_linesearch_monitor'
@@ -512,6 +507,7 @@
 []
 
 [Outputs]
+  file_base = 'FV_Mesh_050'
   perf_graph = true
   [./out]
     type = Exodus

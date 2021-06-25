@@ -8,8 +8,8 @@
     xmax = 1
     ymin = 0
     ymax = 1
-    nx = 25
-    ny = 25
+    nx = 50
+    ny = 50
   []
 []
 
@@ -98,10 +98,17 @@
     variable = potential_FE
     position_units = 1.0
   [../]
-  [./potential_source_FE]
-    type = BodyForce
+  [./ion_charge_source]
+    type = ChargeSourceMoles_KVNonLog_FVMat
     variable = potential_FE
-    function = 'potential_source'
+    charged = ion
+    potential_units = V
+  [../]
+  [./em_charge_source]
+    type = ChargeSourceMoles_KVNonLog_FVMat
+    variable = potential_FE
+    charged = em
+    potential_units = V
   [../]
 []
 
@@ -593,7 +600,7 @@
 [Executioner]
   type = Transient
   start_time = 0
-  end_time = 10
+  end_time = 20
   dt = 0.008
 
   petsc_options = '-snes_converged_reason -snes_linesearch_monitor'
@@ -606,6 +613,7 @@
 []
 
 [Outputs]
+  file_base = 'Mix_WithBC_Mesh_050'
   perf_graph = true
   [./out]
     type = Exodus
