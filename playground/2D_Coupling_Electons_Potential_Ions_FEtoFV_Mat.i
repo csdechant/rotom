@@ -8,8 +8,8 @@
     xmax = 1
     ymin = 0
     ymax = 1
-    nx = 50
-    ny = 50
+    nx = 10
+    ny = 10
   []
 []
 
@@ -571,7 +571,7 @@
 [Executioner]
   type = Transient
   start_time = 0
-  end_time = 20
+  end_time = 10
   dt = 0.008
 
   petsc_options = '-snes_converged_reason -snes_linesearch_monitor'
@@ -584,7 +584,6 @@
 []
 
 [Outputs]
-  file_base = 'Mix_WithOutBC_Mesh_050'
   perf_graph = true
   [./out]
     type = Exodus

@@ -3,11 +3,11 @@
 
 #include "FVFluxKernel.h"
 
-class FVEFieldAdvectionNonLog : public FVFluxKernel
+class FVEFieldAdvectionNonLog_OldFVOnlyCoupling : public FVFluxKernel
 {
 public:
   static InputParameters validParams();
-  FVEFieldAdvectionNonLog(const InputParameters & params);
+  FVEFieldAdvectionNonLog_OldFVOnlyCoupling(const InputParameters & params);
 
 protected:
   virtual ADReal computeQpResidual() override;
@@ -16,4 +16,8 @@ protected:
   const ADMaterialProperty<Real> & _mu_neighbor;
 
   const MaterialProperty<Real> & _sign;
+
+  const MooseVariableFV<Real> * _potential_var;
+  const ADVariableValue & _potential_elem;
+  const ADVariableValue & _potential_neighbor;
 };

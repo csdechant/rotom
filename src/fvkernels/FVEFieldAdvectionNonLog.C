@@ -1,5 +1,15 @@
 
 #include "FVEFieldAdvectionNonLog.h"
+#include "Assembly.h"
+
+#include "MooseTypes.h"
+#include "SubProblem.h"
+#include "FEProblem.h"
+
+#include "libmesh/numeric_vector.h"
+#include "libmesh/dof_map.h"
+#include "libmesh/quadrature.h"
+#include "libmesh/boundary_info.h"
 
 registerADMooseObject("rotomApp", FVEFieldAdvectionNonLog);
 
@@ -17,10 +27,7 @@ FVEFieldAdvectionNonLog::FVEFieldAdvectionNonLog(const InputParameters & params)
   : FVFluxKernel(params),
     _mu_elem(getADMaterialProperty<Real>("mu" + _var.name())),
     _mu_neighbor(getNeighborADMaterialProperty<Real>("mu" + _var.name())),
-    _sign(getMaterialProperty<Real>("sgn" + _var.name())),
-    _potential_var(dynamic_cast<const MooseVariableFV<Real> *>(getFieldVar("potential", 0))),
-    _potential_elem(adCoupledValue("potential")),
-    _potential_neighbor(adCoupledNeighborValue("potential"))
+    _sign(getMaterialProperty<Real>("sgn" + _var.name()))
 {
 }
 
@@ -29,10 +36,7 @@ FVEFieldAdvectionNonLog::computeQpResidual()
 {
   ADReal u_interface;
 
-  auto dpotential_dn = Moose::FV::gradUDotNormal(_potential_elem[_qp],
-                                                 _potential_neighbor[_qp],
-                                                 *_face_info,
-                                                 *_potential_var);
+  ADRealVectorValue grad_potential = adCoupledGradientFace("potential");
 
   using namespace Moose::FV;
 
@@ -51,5 +55,5 @@ FVEFieldAdvectionNonLog::computeQpResidual()
               *_face_info,
               true);
 
-  return _sign[_qp] * mobility * -1.0 * dpotential_dn * u_interface;
+   return _sign[_qp] * mobility * -1.0 * grad_potential * _normal * u_interface;
 }

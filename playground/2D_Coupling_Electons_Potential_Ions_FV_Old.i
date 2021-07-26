@@ -47,7 +47,7 @@
     position_units = 1.0
   [../]
   [./em_advection]
-    type = FVEFieldAdvectionNonLog
+    type = FVEFieldAdvectionNonLog_OldFVOnlyCoupling
     variable = em
     potential = potential
     position_units = 1.0
@@ -69,7 +69,7 @@
     position_units = 1.0
   [../]
   [./ion_advection]
-    type = FVEFieldAdvectionNonLog
+    type = FVEFieldAdvectionNonLog_OldFVOnlyCoupling
     variable = ion
     potential = potential
     position_units = 1.0

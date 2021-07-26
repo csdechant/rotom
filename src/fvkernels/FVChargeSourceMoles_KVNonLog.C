@@ -23,7 +23,6 @@ FVChargeSourceMoles_KVNonLog::FVChargeSourceMoles_KVNonLog(const InputParameters
     _charged(adCoupledValue("charged")),
     _e(getMaterialProperty<Real>("e")),
     _sgn(getMaterialProperty<Real>("sgn" + _charged_var.name())),
-    //_sgn(getMaterialProperty<Real>("sgnem")),
     _N_A(getMaterialProperty<Real>("N_A")),
     _potential_units(getParam<std::string>("potential_units"))
 {

@@ -24,9 +24,6 @@ FVCoeffDiffusionNonLog::computeQpResidual()
 {
   auto dudn = gradUDotNormal();
 
-  // Eventually, it will be nice to offer automatic-switching triggered by
-  // input parameters to change between different interpolation methods for
-  // this.
   ADReal diffusivity;
   interpolate(Moose::FV::InterpMethod::Average,
               diffusivity,

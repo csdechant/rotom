@@ -23,15 +23,13 @@
     order = CONSTANT
     fv = true
   [../]
-  [./potential]
-    family = MONOMIAL
-    order = CONSTANT
-    fv = true
-  [../]
   [./ion]
     family = MONOMIAL
     order = CONSTANT
     fv = true
+  [../]
+
+  [./potential_FE]
   [../]
 []
 
@@ -49,7 +47,7 @@
   [./em_advection]
     type = FVEFieldAdvectionNonLog
     variable = em
-    potential = potential
+    potential = potential_FE
     position_units = 1.0
   [../]
   [./em_source]
@@ -71,7 +69,7 @@
   [./ion_advection]
     type = FVEFieldAdvectionNonLog
     variable = ion
-    potential = potential
+    potential = potential_FE
     position_units = 1.0
   [../]
   [./ion_source]
@@ -79,32 +77,31 @@
     variable = ion
     function = 'ion_source'
   [../]
+[]
 
+[Kernels]
 #Potential Equations
   [./potential_diffusion]
-    type = FVCoeffDiffusionNonLog
-    variable = potential
+    type = CoeffDiffusionNonLog
+    variable = potential_FE
     position_units = 1.0
   [../]
   [./ion_charge_source]
-    type = FVChargeSourceMoles_KVNonLog
-    variable = potential
-    charged = em_sol
+    type = ChargeSourceMoles_KVNonLog_FVMat
+    variable = potential_FE
+    charged = ion
     potential_units = V
   [../]
   [./em_charge_source]
-    type = FVChargeSourceMoles_KVNonLog
-    variable = potential
-    charged = ion_sol
+    type = ChargeSourceMoles_KVNonLog_FVMat
+    variable = potential_FE
+    charged = em
     potential_units = V
   [../]
 []
 
 [AuxVariables]
   [./potential_sol]
-    family = MONOMIAL
-    order = CONSTANT
-    fv = true
   [../]
 
   [./em_sol]
@@ -117,6 +114,11 @@
     family = MONOMIAL
     order = CONSTANT
     fv = true
+  [../]
+
+  [./potential_FE_cell]
+    family = MONOMIAL
+    order = CONSTANT
   [../]
 []
 
@@ -137,6 +139,13 @@
     type = FunctionAux
     variable = ion_sol
     function = ion_fun
+  [../]
+
+  [./Potential_Cell]
+    type = QuotientAux
+    variable = potential_FE_cell
+    numerator = potential_FE
+    denominator = 1.0
   [../]
 []
 
@@ -340,35 +349,6 @@
 []
 
 [FVBCs]
-  [./potential_left_BC]
-    type = FVFunctionDirichletBC
-    variable = potential
-    function = 'potential_left_BC'
-    boundary = 3
-    preset = true
-  [../]
-  [./potential_right_BC]
-    type = FVFunctionDirichletBC
-    variable = potential
-    function = 'potential_right_BC'
-    boundary = 1
-    preset = true
-  [../]
-  [./potential_down_BC]
-    type = FVFunctionDirichletBC
-    variable = potential
-    function = 'potential_down_BC'
-    boundary = 0
-    preset = true
-  [../]
-  [./potential_up_BC]
-    type = FVFunctionDirichletBC
-    variable = potential
-    function = 'potential_up_BC'
-    boundary = 2
-    preset = true
-  [../]
-
   [./em_left_BC]
     type = FVFunctionDirichletBC
     variable = em
@@ -428,6 +408,37 @@
   [../]
 []
 
+[BCs]
+  [./potential_FE_left_BC]
+    type = FunctionDirichletBC
+    variable = potential_FE
+    function = 'potential_left_BC'
+    boundary = 3
+    preset = true
+  [../]
+  [./potential_FE_right_BC]
+    type = FunctionDirichletBC
+    variable = potential_FE
+    function = 'potential_right_BC'
+    boundary = 1
+    preset = true
+  [../]
+  [./potential_FE_down_BC]
+    type = FunctionDirichletBC
+    variable = potential_FE
+    function = 'potential_down_BC'
+    boundary = 0
+    preset = true
+  [../]
+  [./potential_FE_up_BC]
+    type = FunctionDirichletBC
+    variable = potential_FE
+    function = 'potential_up_BC'
+    boundary = 2
+    preset = true
+  [../]
+[]
+
 [Materials]
   [./Material_Coeff]
     type = GenericFunctionMaterial
@@ -436,13 +447,13 @@
   [../]
   [./ADMaterial_Coeff_Set1]
     type = ADGenericFunctionMaterial
-    prop_names =  'diffpotential diffion muion'
-    prop_values = 'diffpotential diffion muion'
+    prop_names =  'diffpotential_FE'
+    prop_values = 'diffpotential'
   [../]
   [./ADMaterial_Coeff_Set2]
     type = ADGenericFunctionMaterial
-    prop_names =  'diffem        muem'
-    prop_values = 'diffem_coeff  muem_coeff'
+    prop_names =  'diffem        muem        diffion muion'
+    prop_values = 'diffem_coeff  muem_coeff  diffion muion'
   [../]
   [./Charge_Signs]
     type = GenericConstantMaterial
@@ -458,18 +469,24 @@
 
 [Postprocessors]
   [./em_l2Error]
-    type = ElementL2Error
+    type = ElementCenterL2Error
     variable = em
     function = em_fun
   [../]
   [./ion_l2Error]
-    type = ElementL2Error
+    type = ElementCenterL2Error
     variable = ion
     function = ion_fun
   [../]
-  [./potential_l2Error]
+  #[./potential_FV_l2Error]
+  #  type = ElementCenterL2Error
+  #  variable = potential_FV
+  #  function = potential_fun
+  #[../]
+
+  [./potential_FE_l2Error]
     type = ElementL2Error
-    variable = potential
+    variable = potential_FE
     function = potential_fun
   [../]
 

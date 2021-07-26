@@ -19,67 +19,64 @@
 
 [Variables]
   [./em]
-    family = MONOMIAL
-    order = CONSTANT
-    fv = true
-  [../]
-  [./potential]
-    family = MONOMIAL
-    order = CONSTANT
-    fv = true
   [../]
   [./ion]
+  [../]
+
+  [./potential]
     family = MONOMIAL
     order = CONSTANT
     fv = true
   [../]
 []
 
-[FVKernels]
+[Kernels]
 #Electron Equations
   [./em_time_derivative]
-    type = FVTimeKernel
+    type = TimeDerivative
     variable = em
   [../]
   [./em_diffusion]
-    type = FVCoeffDiffusionNonLog
+    type = CoeffDiffusionNonLog
     variable = em
     position_units = 1.0
   [../]
   [./em_advection]
-    type = FVEFieldAdvectionNonLog
+    type = EFieldAdvectionNonLog
     variable = em
-    potential = potential
+    potential = potential_sol
     position_units = 1.0
   [../]
   [./em_source]
-    type = FVBodyForce
+    type = BodyForce
     variable = em
     function = 'em_source'
   [../]
 
 #Ion Equations
   [./ion_time_derivative]
-    type = FVTimeKernel
+    type = TimeDerivative
     variable = ion
   [../]
   [./ion_diffusion]
-    type = FVCoeffDiffusionNonLog
+    type = CoeffDiffusionNonLog
     variable = ion
     position_units = 1.0
   [../]
   [./ion_advection]
-    type = FVEFieldAdvectionNonLog
+    type = EFieldAdvectionNonLog
     variable = ion
-    potential = potential
+    potential = potential_sol
     position_units = 1.0
   [../]
   [./ion_source]
-    type = FVBodyForce
+    type = BodyForce
     variable = ion
     function = 'ion_source'
   [../]
+[]
 
+[FVKernels]
 #Potential Equations
   [./potential_diffusion]
     type = FVCoeffDiffusionNonLog
@@ -89,34 +86,19 @@
   [./ion_charge_source]
     type = FVChargeSourceMoles_KVNonLog
     variable = potential
-    charged = em_sol
+    charged = em
     potential_units = V
   [../]
   [./em_charge_source]
     type = FVChargeSourceMoles_KVNonLog
     variable = potential
-    charged = ion_sol
+    charged = ion
     potential_units = V
   [../]
 []
 
 [AuxVariables]
   [./potential_sol]
-    family = MONOMIAL
-    order = CONSTANT
-    fv = true
-  [../]
-
-  [./em_sol]
-    family = MONOMIAL
-    order = CONSTANT
-    fv = true
-  [../]
-
-  [./ion_sol]
-    family = MONOMIAL
-    order = CONSTANT
-    fv = true
   [../]
 []
 
@@ -125,18 +107,6 @@
     type = FunctionAux
     variable = potential_sol
     function = potential_fun
-  [../]
-
-  [./em_sol]
-    type = FunctionAux
-    variable = em_sol
-    function = em_fun
-  [../]
-
-  [./ion_sol]
-    type = FunctionAux
-    variable = ion_sol
-    function = ion_fun
   [../]
 []
 
@@ -339,6 +309,66 @@
   [../]
 []
 
+[BCs]
+  [./em_left_BC]
+    type = FunctionDirichletBC
+    variable = em
+    function = 'em_left_BC'
+    boundary = 3
+    preset = true
+  [../]
+  [./em_right_BC]
+    type = FunctionDirichletBC
+    variable = em
+    function = 'em_right_BC'
+    boundary = 1
+    preset = true
+  [../]
+  [./em_down_BC]
+    type = FunctionDirichletBC
+    variable = em
+    function = 'em_down_BC'
+    boundary = 0
+    preset = true
+  [../]
+  [./em_up_BC]
+    type = FunctionDirichletBC
+    variable = em
+    function = 'em_up_BC'
+    boundary = 2
+    preset = true
+  [../]
+
+  [./ion_left_BC]
+    type = FunctionDirichletBC
+    variable = ion
+    function = 'ion_left_BC'
+    boundary = 3
+    preset = true
+  [../]
+  [./ion_right_BC]
+    type = FunctionDirichletBC
+    variable = ion
+    function = 'ion_right_BC'
+    boundary = 1
+    preset = true
+  [../]
+  [./ion_down_BC]
+    type = FunctionDirichletBC
+    variable = ion
+    function = 'ion_down_BC'
+    boundary = 0
+    preset = true
+  [../]
+  [./ion_up_BC]
+    type = FunctionDirichletBC
+    variable = ion
+    function = 'ion_up_BC'
+    boundary = 2
+    preset = true
+  [../]
+[]
+
 [FVBCs]
   [./potential_left_BC]
     type = FVFunctionDirichletBC
@@ -368,64 +398,6 @@
     boundary = 2
     preset = true
   [../]
-
-  [./em_left_BC]
-    type = FVFunctionDirichletBC
-    variable = em
-    function = 'em_left_BC'
-    boundary = 3
-    preset = true
-  [../]
-  [./em_right_BC]
-    type = FVFunctionDirichletBC
-    variable = em
-    function = 'em_right_BC'
-    boundary = 1
-    preset = true
-  [../]
-  [./em_down_BC]
-    type = FVFunctionDirichletBC
-    variable = em
-    function = 'em_down_BC'
-    boundary = 0
-    preset = true
-  [../]
-  [./em_up_BC]
-    type = FVFunctionDirichletBC
-    variable = em
-    function = 'em_up_BC'
-    boundary = 2
-    preset = true
-  [../]
-
-  [./ion_left_BC]
-    type = FVFunctionDirichletBC
-    variable = ion
-    function = 'ion_left_BC'
-    boundary = 3
-    preset = true
-  [../]
-  [./ion_right_BC]
-    type = FVFunctionDirichletBC
-    variable = ion
-    function = 'ion_right_BC'
-    boundary = 1
-    preset = true
-  [../]
-  [./ion_down_BC]
-    type = FVFunctionDirichletBC
-    variable = ion
-    function = 'ion_down_BC'
-    boundary = 0
-    preset = true
-  [../]
-  [./ion_up_BC]
-    type = FVFunctionDirichletBC
-    variable = ion
-    function = 'ion_up_BC'
-    boundary = 2
-    preset = true
-  [../]
 []
 
 [Materials]
@@ -449,11 +421,6 @@
     prop_names =  'sgnem  sgnion'
     prop_values = '-1.0   1.0'
   [../]
-  [./Charge_SignsV02]
-    type = GenericConstantMaterial
-    prop_names =  'sgnem_sol  sgnion_sol'
-    prop_values = '-1.0       1.0'
-  [../]
 []
 
 [Postprocessors]
@@ -468,7 +435,7 @@
     function = ion_fun
   [../]
   [./potential_l2Error]
-    type = ElementL2Error
+    type = ElementCenterL2Error
     variable = potential
     function = potential_fun
   [../]
@@ -496,6 +463,7 @@
   start_time = 0
   end_time = 10
   dt = 0.008
+
 
   petsc_options = '-snes_converged_reason -snes_linesearch_monitor'
   solve_type = NEWTON
